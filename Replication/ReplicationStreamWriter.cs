@@ -6,7 +6,7 @@ using Google.Protobuf;
 
 namespace Replication
 {
-    public interface IReplicationStreamWriter
+    public interface IReplicationStreamWriter : IDisposable
     {
         void WriteTo(Stream stream);
     }
@@ -23,7 +23,7 @@ namespace Replication
         public static readonly ReplicationStreamWriterOptions Default = new ReplicationStreamWriterOptions();
     }
 
-    internal class ReplicationStreamWriter : IReplicationStreamWriter, IDisposable
+    internal class ReplicationStreamWriter : IReplicationStreamWriter
     {
         internal ReplicationStreamWriter(ReplicationSystem system, ReplicationStreamWriterOptions options = null)
         {
