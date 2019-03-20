@@ -1,0 +1,7 @@
+.vs/
+*.dll
+*.pdb
+Replication.Test/bin/
+Replication.Test/obj/
+Replication/bin/
+Replication/obj/

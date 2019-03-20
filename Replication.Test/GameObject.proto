@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+package replication.test;
+
+option csharp_namespace = "Replication.Test.Protobuf";
+
+message GameObject
+{
+  string name = 1;
+  int32 state = 2;
+}
