@@ -6,19 +6,19 @@ using Google.Protobuf;
 
 namespace Replication
 {
-    public interface IReplicationSlave
+    public interface IReplicationStreamReader
     {
         void ReadFrom(Stream stream);
     }
 
-    internal class ReplicationSlave : IReplicationSlave
+    internal class ReplicationStreamReader : IReplicationStreamReader
     {
-        internal ReplicationSlave(ReplicationSystem system)
+        internal ReplicationStreamReader(ReplicationSystem system)
         {
             this.system = system;
         }
 
-        void IReplicationSlave.ReadFrom(Stream stream)
+        void IReplicationStreamReader.ReadFrom(Stream stream)
         {
             var message = Protobuf.ReplicationMessage.Parser.ParseFrom(stream);
 

@@ -8,25 +8,25 @@ namespace Replication
 {
     public partial class ReplicationSystem
     {
-        public IReplicationMaster CreateMaster(ReplicationMasterOptions options = null)
+        public IReplicationStreamWriter CreateStreamWriter(ReplicationStreamWriterOptions options = null)
         {
-            return new ReplicationMaster(this, options);
+            return new ReplicationStreamWriter(this, options);
         }
-        public IReplicationSlave CreateSlave()
+        public IReplicationStreamReader CreateStreamReader()
         {
-            return new ReplicationSlave(this);
+            return new ReplicationStreamReader(this);
         }
 
-        IReplicationSlave defaultSlave = null;
-        public IReplicationSlave DefaultSlave
+        IReplicationStreamReader defaultStreamReader = null;
+        public IReplicationStreamReader DefaultStreamReader
         {
             get
             {
-                if (defaultSlave == null)
+                if (defaultStreamReader == null)
                 {
-                    defaultSlave = CreateSlave();
+                    defaultStreamReader = CreateStreamReader();
                 }
-                return defaultSlave;
+                return defaultStreamReader;
             }
         }
     }

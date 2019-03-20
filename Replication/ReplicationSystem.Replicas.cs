@@ -10,26 +10,25 @@ namespace Replication
     public enum StaticReplicaOptions
     {
         Master = ReplicaOptions.Master,
-        UpdatedOnly = ReplicaOptions.UpdatedOnly,
+        AlwaysUpdate = ReplicaOptions.AlwaysUpdate,
         DifferentOnly = ReplicaOptions.DifferentOnly,
 
-        DefaultMaster = (Master | UpdatedOnly),
+        DefaultMaster = Master,
         DefaultSlave = 0,
     }
 
     [Flags]
     public enum DynamicReplicaOptions
     {
-        None = 0,
-        UpdatedOnly = ReplicaOptions.UpdatedOnly,
+        AlwaysUpdate = ReplicaOptions.AlwaysUpdate,
         DifferentOnly = ReplicaOptions.DifferentOnly,
 
-        Default = UpdatedOnly,
+        DefaultMaster = 0,
     }
 
     public partial class ReplicationSystem
     {
-        public ReplicaId AddDynamicReplica(IMessage replica, DynamicReplicaOptions options = DynamicReplicaOptions.Default)
+        public ReplicaId AddDynamicReplica(IMessage replica, DynamicReplicaOptions options = DynamicReplicaOptions.DefaultMaster)
         {
             ReplicaOptions replicaOptions = (ReplicaOptions)options;
             replicaOptions |= ReplicaOptions.AddOrRemove;

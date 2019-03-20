@@ -34,8 +34,9 @@ namespace Replication
             typeIds.Add(type, typeId);
         }
 
-        internal Type GetType(TypeId typeId) => types[typeId];
-        internal TypeId GetTypeId(Type type) => typeIds[type];
+        public Type GetType(TypeId typeId) => types[typeId];
+        public TypeId GetTypeId(Type type) => typeIds[type];
+
         Dictionary<TypeId, Type> types = new Dictionary<TypeId, Type>();
         Dictionary<Type, TypeId> typeIds = new Dictionary<Type, TypeId>();
     }

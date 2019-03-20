@@ -19,7 +19,7 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster();
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
 
             bool slaveReplicaAdded = false;
@@ -48,7 +48,7 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster();
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
 
             bool slaveReplicaUpdated = false;
@@ -79,7 +79,7 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster(new ReplicationMasterOptions() { UpdatedOnly = false });
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
 
             int slaveReplicaUpdated = 0;
@@ -87,9 +87,9 @@ namespace Replication.Test
 
             // Add
             var a = new Protobuf.GameObject() { Name = "A", State = 1};
-            var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.None);
+            var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.AlwaysUpdate);
             var b = new Protobuf.GameObject() { Name = "B", State = 1 };
-            var idB = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.UpdatedOnly);
+            var idB = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster);
             master.WriteTo(slaveSystem);
 
             // Update
@@ -102,20 +102,20 @@ namespace Replication.Test
             Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idA).State, 2);
             Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idB).State, 1);
         }
-
+        
         [TestMethod]
         public void TestDifferentOnly()
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster();
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
 
             bool slaveReplicaUpdated = false;
             slaveSystem.ReplicaUpdated += x => slaveReplicaUpdated = true;
 
             // Add
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" }, DynamicReplicaOptions.Default | DynamicReplicaOptions.DifferentOnly);
+            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" }, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.DifferentOnly);
             master.WriteTo(slaveSystem);
 
             // Update
@@ -148,7 +148,7 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster();
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
 
             bool slaveReplicaAdded = false;
@@ -175,8 +175,8 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateMaster();
-            var masterSpam = masterSystem.CreateMaster(new ReplicationMasterOptions() { AllowAddOrRemove = false, UpdatedOnly = false });
+            var master = masterSystem.CreateStreamWriter(new ReplicationStreamWriterOptions() { AllowAlwaysUpdate = false });
+            var masterSpam = masterSystem.CreateStreamWriter(new ReplicationStreamWriterOptions() { AllowAddOrRemove = false, AllowUpdatedOnly = false });
             
             var slaveSystem = CreateSystem();
 
@@ -187,8 +187,9 @@ namespace Replication.Test
 
             // Add
             var a = new Protobuf.GameObject() { Name = "A" };
-            var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.None);
-            var idB = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "B" }, DynamicReplicaOptions.UpdatedOnly);
+            var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.AlwaysUpdate);
+            var b = new Protobuf.GameObject() { Name = "B" };
+            var idB = masterSystem.AddDynamicReplica(b, DynamicReplicaOptions.DefaultMaster);
 
             slaveReplicaAdded = 0;
             master.WriteTo(slaveSystem);
@@ -222,8 +223,8 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var masterA = masterSystem.CreateMaster();
-            var masterB = masterSystem.CreateMaster();
+            var masterA = masterSystem.CreateStreamWriter();
+            var masterB = masterSystem.CreateStreamWriter();
 
             var slaveSystemA = CreateSystem();
             var slaveSystemB = CreateSystem();
@@ -264,7 +265,7 @@ namespace Replication.Test
             var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
 
             // Join
-            var master = masterSystem.CreateMaster();
+            var master = masterSystem.CreateStreamWriter();
             var slaveSystem = CreateSystem();
             master.WriteTo(slaveSystem);
 

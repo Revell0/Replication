@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Replication
 {
-    public static class ReplicationMasterExtensions
+    public static class ReplicationStreamWriterExtensions
     {
-        public static void WriteTo(this IReplicationMaster master, IReplicationSlave slave)
+        public static void WriteTo(this IReplicationStreamWriter master, IReplicationStreamReader slave)
         {
             using (MemoryStream stream = new MemoryStream())
             {
@@ -17,9 +17,9 @@ namespace Replication
             }
         }
 
-        public static void WriteTo(this IReplicationMaster master, ReplicationSystem system)
+        public static void WriteTo(this IReplicationStreamWriter master, ReplicationSystem system)
         {
-            master.WriteTo(system.DefaultSlave);
+            master.WriteTo(system.DefaultStreamReader);
         }
     }
 }

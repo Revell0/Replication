@@ -31,10 +31,10 @@ namespace Replication
     {
         Master = 1 << 0,
         AddOrRemove = 1 << 1,
-        UpdatedOnly = 1 << 2,
+        AlwaysUpdate = 1 << 2,
         DifferentOnly = 1 << 3,
 
-        DefaultMaster = (Master | AddOrRemove | UpdatedOnly),
+        DefaultMaster = (Master | AddOrRemove),
         DefaultSlave = 0,
     }
 
@@ -46,7 +46,8 @@ namespace Replication
 
         public bool Master => (Options & ReplicaOptions.Master) != 0;
         public bool AddOrRemove => (Options & ReplicaOptions.AddOrRemove) != 0;
-        public bool UpdatedOnly => (Options & ReplicaOptions.UpdatedOnly) != 0;
+        public bool UpdatedOnly => !AlwaysUpdate;
+        public bool AlwaysUpdate => (Options & ReplicaOptions.AlwaysUpdate) != 0;
         public bool DifferentOnly => (Options & ReplicaOptions.DifferentOnly) != 0;
 
         internal Replica(ReplicaId id, IMessage value, ReplicaOptions options)
