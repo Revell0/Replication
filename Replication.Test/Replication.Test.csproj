@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="GameObject.proto" />
+    <None Remove="TestObject.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProtoBuf Include="GameObject.proto" GrpcServices="None" />
+    <ProtoBuf Include="TestObject.proto" GrpcServices="None" />
   </ItemGroup>
 
 </Project>

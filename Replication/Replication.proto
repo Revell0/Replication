@@ -1,8 +1,6 @@
 syntax = "proto3";
 package replication;
 
-import "google/protobuf/any.proto";
-
 option csharp_namespace = "Replication.Protobuf";
 
 message AddMessage {
@@ -15,19 +13,26 @@ message RemoveMessage {
   int32 replicaId = 1;
 }
 
+message RemoteCallMessage {
+  int32 functionId = 1;
+  int32 typeId = 2;
+  bytes argument = 3;
+}
+
 message UpdateMessage {
   int32 replicaId = 1;
   bytes replica = 2;
 }
 
 message ReplicationMessage {
-  message AddOrRemove {
+  message ActionMessage {
     oneof value {
 	  AddMessage add = 1;
 	  RemoveMessage remove = 2;
+	  RemoteCallMessage remoteCall = 3;
 	}
   }
-  repeated AddOrRemove addsOrRemoves = 1;
+  repeated ActionMessage actions = 1;
   repeated UpdateMessage updates = 2;
 }
 

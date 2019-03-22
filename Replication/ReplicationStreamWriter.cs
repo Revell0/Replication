@@ -17,6 +17,7 @@ namespace Replication
         public bool AllowDifferentOnly { get; set; } = true;
         public bool AllowUpdatedOnly { get; set; } = true;
         public bool AllowAlwaysUpdate { get; set; } = true;
+        public bool AllowRemoteCall { get; set; } = true;
         public bool MasterOnly { get; set; } = true;
         public Func<Replica, bool> Culling = null;
 
@@ -37,6 +38,15 @@ namespace Replication
                 foreach(var replica in this.system.Replicas)
                 {
                     System_ReplicaAdded(replica);
+                }
+            }
+
+            if (this.options.AllowRemoteCall)
+            {
+                this.system.RemoteCall += System_RemoteCall;
+                foreach (var call in this.system.QueuedRemoteCalls)
+                {
+                    System_RemoteCall(call.Item1, call.Item2);
                 }
             }
 
@@ -67,11 +77,13 @@ namespace Replication
 
         private void WriteAdd(Protobuf.ReplicationMessage message, Replica replica)
         {
-            var addMessage = new Protobuf.AddMessage();
-            addMessage.TypeId = system.GetTypeId(replica.Value.GetType());
-            addMessage.ReplicaId = replica.Id.Value;
-            addMessage.Replica = replica.Value.ToByteString();
-            message.AddsOrRemoves.Add(new Protobuf.ReplicationMessage.Types.AddOrRemove() { Add = addMessage });
+            var addMessage = new Protobuf.AddMessage()
+            {
+                TypeId = system.GetTypeId(replica.Value.GetType()),
+                ReplicaId = replica.Id.Value,
+                Replica = replica.Value.ToByteString()
+            };
+            message.Actions.Add(new Protobuf.ReplicationMessage.Types.ActionMessage() { Add = addMessage });
         }
 
         private void System_ReplicaRemoved(Replica replica)
@@ -87,9 +99,30 @@ namespace Replication
 
         private void WriteRemove(Protobuf.ReplicationMessage message, Replica replica)
         {
-            var removeMessage = new Protobuf.RemoveMessage();
-            removeMessage.ReplicaId = replica.Id;
-            message.AddsOrRemoves.Add(new Protobuf.ReplicationMessage.Types.AddOrRemove() { Remove = removeMessage });
+            var removeMessage = new Protobuf.RemoveMessage()
+            {
+                ReplicaId = replica.Id
+            };
+            message.Actions.Add(new Protobuf.ReplicationMessage.Types.ActionMessage() { Remove = removeMessage });
+        }
+
+        private void System_RemoteCall(FunctionId functionId, IMessage argument)
+        {
+            if (!options.AllowRemoteCall)
+                return;
+
+            WriteRemoteCall(GetNextMessage(), functionId, argument);
+        }
+
+        private void WriteRemoteCall(Protobuf.ReplicationMessage message, FunctionId functionId, IMessage argument)
+        {
+            var remoteCallMessage = new Protobuf.RemoteCallMessage()
+            {
+                FunctionId = functionId,
+                TypeId = system.GetTypeId(argument.GetType()),
+                Argument = argument.ToByteString()
+            };
+            message.Actions.Add(new Protobuf.ReplicationMessage.Types.ActionMessage() { RemoteCall = remoteCallMessage });
         }
 
         private void System_ReplicaUpdated(Replica replica)

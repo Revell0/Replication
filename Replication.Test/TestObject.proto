@@ -3,8 +3,14 @@ package replication.test;
 
 option csharp_namespace = "Replication.Test.Protobuf";
 
-message GameObject
+message TestObject
 {
   string name = 1;
   int32 state = 2;
+}
+
+message CallTestObject
+{
+  int32 replicaId = 1;
+  string argument = 2;
 }

@@ -37,6 +37,18 @@ namespace Replication
         public Type GetType(TypeId typeId) => types[typeId];
         public TypeId GetTypeId(Type type) => typeIds[type];
 
+        public IMessage CreateInstance(TypeId typeId, ByteString data)
+        {
+            var type = GetType(typeId);
+            var instance = (IMessage)Activator.CreateInstance(type);
+            if (data != null)
+            {
+                instance.MergeFrom(data);
+            }
+            return instance;
+        }
+
+
         Dictionary<TypeId, Type> types = new Dictionary<TypeId, Type>();
         Dictionary<Type, TypeId> typeIds = new Dictionary<Type, TypeId>();
     }

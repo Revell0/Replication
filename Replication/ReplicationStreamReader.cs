@@ -22,20 +22,24 @@ namespace Replication
         {
             var message = Protobuf.ReplicationMessage.Parser.ParseFrom(stream);
 
-            foreach(var addsOrRemoves in message.AddsOrRemoves)
+            foreach(var action in message.Actions)
             {
-                if (addsOrRemoves.Add != null)
+                if (action.Add != null)
                 {
-                    var addMessage = addsOrRemoves.Add;
-                    var type = system.GetType(addMessage.TypeId);
-                    var replica = (IMessage) Activator.CreateInstance(type);
-                    replica.MergeFrom(addMessage.Replica);
+                    var addMessage = action.Add;
+                    var replica = system.CreateInstance(addMessage.TypeId, addMessage.Replica);
                     system.AddReplica(addMessage.ReplicaId, replica, ReplicaOptions.DefaultSlave);
                 }
-                else if (addsOrRemoves.Remove != null)
+                else if (action.Remove != null)
                 {
-                    var removeMessage = addsOrRemoves.Remove;
+                    var removeMessage = action.Remove;
                     system.RemoveReplica(removeMessage.ReplicaId);
+                }
+                else if (action.RemoteCall != null)
+                {
+                    var remoteCallMessage = action.RemoteCall;
+                    var argument = system.CreateInstance(remoteCallMessage.TypeId, remoteCallMessage.Argument);
+                    system.Call(remoteCallMessage.FunctionId, argument, CallOptions.Local);
                 }
             }
             foreach (var update in message.Updates)

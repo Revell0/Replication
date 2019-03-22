@@ -10,7 +10,8 @@ namespace Replication.Test
         private ReplicationSystem CreateSystem()
         {
             var system = new ReplicationSystem();
-            system.AddType(1, typeof(Protobuf.GameObject));
+            system.AddType(1, typeof(Protobuf.TestObject));
+            system.AddType(2, typeof(Protobuf.CallTestObject));
             return system;
         }
 
@@ -28,12 +29,12 @@ namespace Replication.Test
             slaveSystem.ReplicaRemoved += x => slaveReplicaRemoved = true;
 
             // Add
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
             master.WriteTo(slaveSystem);
 
             Assert.IsTrue(slaveReplicaAdded);
             Assert.AreEqual(slaveSystem.Replicas.Count(), 1);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).Name, "A");
 
             // Remove
             masterSystem.RemoveReplica(id);
@@ -55,17 +56,17 @@ namespace Replication.Test
             slaveSystem.ReplicaUpdated += x => slaveReplicaUpdated = true;
 
             // Add
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
             master.WriteTo(slaveSystem);
 
             // Update
             slaveReplicaUpdated = false;
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 2 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 2 });
             master.WriteTo(slaveSystem);
 
             Assert.IsTrue(slaveReplicaUpdated);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).Name, "A");
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).State, 2);
 
             // Rewrite (No Changes)
             slaveReplicaUpdated = false;
@@ -86,9 +87,9 @@ namespace Replication.Test
             slaveSystem.ReplicaUpdated += x => ++slaveReplicaUpdated;
 
             // Add
-            var a = new Protobuf.GameObject() { Name = "A", State = 1};
+            var a = new Protobuf.TestObject() { Name = "A", State = 1};
             var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.AlwaysUpdate);
-            var b = new Protobuf.GameObject() { Name = "B", State = 1 };
+            var b = new Protobuf.TestObject() { Name = "B", State = 1 };
             var idB = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster);
             master.WriteTo(slaveSystem);
 
@@ -99,8 +100,8 @@ namespace Replication.Test
             master.WriteTo(slaveSystem);
 
             Assert.AreEqual(slaveReplicaUpdated, 1);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idA).State, 2);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idB).State, 1);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(idA).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(idB).State, 1);
         }
         
         [TestMethod]
@@ -115,28 +116,28 @@ namespace Replication.Test
             slaveSystem.ReplicaUpdated += x => slaveReplicaUpdated = true;
 
             // Add
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" }, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.DifferentOnly);
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" }, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.DifferentOnly);
             master.WriteTo(slaveSystem);
 
             // Update
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 2 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 2 });
             master.WriteTo(slaveSystem);
 
             Assert.IsTrue(slaveReplicaUpdated);
             Assert.AreEqual(slaveSystem.Replicas.Count(), 1);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).Name, "A");
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).State, 2);
 
             // Rewrite (No Changes)
             slaveReplicaUpdated = false;
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 2 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 2 });
             master.WriteTo(slaveSystem);
 
             Assert.IsFalse(slaveReplicaUpdated);
 
             // Rewrite (Changes)
             slaveReplicaUpdated = false;
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 3 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 3 });
             master.WriteTo(slaveSystem);
 
             Assert.IsTrue(slaveReplicaUpdated);
@@ -156,18 +157,18 @@ namespace Replication.Test
 
             // Add
             ReplicaId id = 10;
-            masterSystem.AddStaticReplica(id, new Protobuf.GameObject() { Name = "A"}, StaticReplicaOptions.DefaultMaster);
-            slaveSystem.AddStaticReplica(id, new Protobuf.GameObject() { Name = "A"}, StaticReplicaOptions.DefaultSlave);
+            masterSystem.AddStaticReplica(id, new Protobuf.TestObject() { Name = "A"}, StaticReplicaOptions.DefaultMaster);
+            slaveSystem.AddStaticReplica(id, new Protobuf.TestObject() { Name = "A"}, StaticReplicaOptions.DefaultSlave);
 
             slaveReplicaAdded = false;
             master.WriteTo(slaveSystem);
             Assert.IsFalse(slaveReplicaAdded);
 
             // Update
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 2 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 2 });
             master.WriteTo(slaveSystem);
 
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).State, 2);
         }
 
         [TestMethod]
@@ -186,9 +187,9 @@ namespace Replication.Test
             slaveSystem.ReplicaUpdated += x => ++slaveReplicaUpdated;
 
             // Add
-            var a = new Protobuf.GameObject() { Name = "A" };
+            var a = new Protobuf.TestObject() { Name = "A" };
             var idA = masterSystem.AddDynamicReplica(a, DynamicReplicaOptions.DefaultMaster|DynamicReplicaOptions.AlwaysUpdate);
-            var b = new Protobuf.GameObject() { Name = "B" };
+            var b = new Protobuf.TestObject() { Name = "B" };
             var idB = masterSystem.AddDynamicReplica(b, DynamicReplicaOptions.DefaultMaster);
 
             slaveReplicaAdded = 0;
@@ -204,18 +205,18 @@ namespace Replication.Test
             masterSpam.WriteTo(slaveSystem);
 
             Assert.AreEqual(slaveReplicaUpdated, 1);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idA).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(idA).State, 2);
 
 
             // Update B
-            masterSystem.UpdateReplica(idB, new Protobuf.GameObject() { State = 3 });
+            masterSystem.UpdateReplica(idB, new Protobuf.TestObject() { State = 3 });
             slaveReplicaUpdated = 0;
             master.WriteTo(slaveSystem);
             masterSpam.WriteTo(slaveSystem);
 
             Assert.AreEqual(slaveReplicaUpdated, 2);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idA).State, 2);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(idB).State, 3);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(idA).State, 2);
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(idB).State, 3);
         }
 
         [TestMethod]
@@ -230,22 +231,22 @@ namespace Replication.Test
             var slaveSystemB = CreateSystem();
 
             // Add
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
             masterA.WriteTo(slaveSystemA);
             masterB.WriteTo(slaveSystemB);
 
             Assert.AreEqual(slaveSystemA.Replicas.Count(), 1);
             Assert.AreEqual(slaveSystemB.Replicas.Count(), 1);
-            Assert.AreEqual(slaveSystemA.GetReplica<Protobuf.GameObject>(id).Name, "A");
-            Assert.AreEqual(slaveSystemB.GetReplica<Protobuf.GameObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystemA.GetReplica<Protobuf.TestObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystemB.GetReplica<Protobuf.TestObject>(id).Name, "A");
 
             // Update
-            masterSystem.UpdateReplica(id, new Protobuf.GameObject() { State = 2 });
+            masterSystem.UpdateReplica(id, new Protobuf.TestObject() { State = 2 });
             masterA.WriteTo(slaveSystemA);
             masterB.WriteTo(slaveSystemB);
 
-            Assert.AreEqual(slaveSystemA.GetReplica<Protobuf.GameObject>(id).State, 2);
-            Assert.AreEqual(slaveSystemB.GetReplica<Protobuf.GameObject>(id).State, 2);
+            Assert.AreEqual(slaveSystemA.GetReplica<Protobuf.TestObject>(id).State, 2);
+            Assert.AreEqual(slaveSystemB.GetReplica<Protobuf.TestObject>(id).State, 2);
 
 
             // Remove
@@ -262,7 +263,7 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var id = masterSystem.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
 
             // Join
             var master = masterSystem.CreateStreamWriter();
@@ -270,7 +271,72 @@ namespace Replication.Test
             master.WriteTo(slaveSystem);
 
             Assert.AreEqual(slaveSystem.Replicas.Count(), 1);
-            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.GameObject>(id).Name, "A");
+            Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(id).Name, "A");
+        }
+
+        [TestMethod]
+        public void TestRemoteCall()
+        {
+            // Setup
+            var masterSystem = CreateSystem();
+            var master = masterSystem.CreateStreamWriter();
+            var slaveSystem = CreateSystem();
+
+            FunctionId functionId = 1;
+            int remoteCallHandled = 0;
+            slaveSystem.AddFunction(functionId, (Protobuf.CallTestObject arg) =>
+            {
+                Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(arg.ReplicaId).Name, "A");
+                Assert.AreEqual(arg.Argument, "Hello");
+                ++remoteCallHandled;
+            });
+
+            // Add an object
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
+            master.WriteTo(slaveSystem);
+
+            // RemoteCall
+            masterSystem.Call(functionId, new Protobuf.CallTestObject() { ReplicaId = id, Argument = "Hello" });
+            master.WriteTo(slaveSystem);
+
+            Assert.AreEqual(remoteCallHandled, 1);
+
+            //
+            master.WriteTo(slaveSystem);
+
+            Assert.AreEqual(remoteCallHandled, 1);
+        }
+
+        [TestMethod]
+        public void TestQueueCall()
+        {
+            // Setup
+            var masterSystem = CreateSystem();
+           
+            // Add an object
+            var id = masterSystem.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
+
+            // RemoteCall
+            FunctionId functionId = 1;
+            masterSystem.Call(functionId, new Protobuf.CallTestObject() { ReplicaId = id, Argument = "Hello" }, CallOptions.Default|CallOptions.Queue);
+
+            // Create writer and slave
+            var master = masterSystem.CreateStreamWriter();
+            var slaveSystem = CreateSystem();
+
+            int remoteCallHandled = 0;
+            slaveSystem.AddFunction(functionId, (Protobuf.CallTestObject arg) =>
+            {
+                Assert.AreEqual(slaveSystem.GetReplica<Protobuf.TestObject>(arg.ReplicaId).Name, "A");
+                Assert.AreEqual(arg.Argument, "Hello");
+                ++remoteCallHandled;
+            });
+            master.WriteTo(slaveSystem);
+            Assert.AreEqual(remoteCallHandled, 1);
+
+            //
+            master.WriteTo(slaveSystem);
+            Assert.AreEqual(remoteCallHandled, 1);
         }
     }
 }
