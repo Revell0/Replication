@@ -21,7 +21,28 @@ namespace Replication
         public bool MasterOnly { get; set; } = true;
         public Func<Replica, bool> Culling = null;
 
-        public static readonly ReplicationStreamWriterOptions Default = new ReplicationStreamWriterOptions();
+        public static readonly ReplicationStreamWriterOptions AllowAll = new ReplicationStreamWriterOptions();
+        public static readonly ReplicationStreamWriterOptions AllowNone = new ReplicationStreamWriterOptions()
+        {
+            AllowAddOrRemove = false,
+            AllowDifferentOnly = false,
+            AllowUpdatedOnly = false,
+            AllowAlwaysUpdate = false,
+            AllowRemoteCall  = false
+        };
+        public static readonly ReplicationStreamWriterOptions AllowAllExceptAlwaysUpdate = new ReplicationStreamWriterOptions()
+        {
+            AllowAlwaysUpdate = false
+        };
+        public static readonly ReplicationStreamWriterOptions AllowOnlyAlwaysUpdate = new ReplicationStreamWriterOptions()
+        {
+            AllowAddOrRemove = false,
+            AllowDifferentOnly = false,
+            AllowUpdatedOnly = false,
+            AllowAlwaysUpdate = true,
+            AllowRemoteCall = false
+        };
+        public static readonly ReplicationStreamWriterOptions Default = AllowAll;
     }
 
     internal class ReplicationStreamWriter : IReplicationStreamWriter

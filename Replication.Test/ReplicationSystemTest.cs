@@ -176,8 +176,8 @@ namespace Replication.Test
         {
             // Setup
             var masterSystem = CreateSystem();
-            var master = masterSystem.CreateStreamWriter(new ReplicationStreamWriterOptions() { AllowAlwaysUpdate = false });
-            var masterSpam = masterSystem.CreateStreamWriter(new ReplicationStreamWriterOptions() { AllowAddOrRemove = false, AllowUpdatedOnly = false });
+            var master = masterSystem.CreateStreamWriter(ReplicationStreamWriterOptions.AllowAllExceptAlwaysUpdate);
+            var masterSpam = masterSystem.CreateStreamWriter(ReplicationStreamWriterOptions.AllowOnlyAlwaysUpdate);
             
             var slaveSystem = CreateSystem();
 

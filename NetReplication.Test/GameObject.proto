@@ -3,7 +3,7 @@ package netreplication.test;
 
 option csharp_namespace = "NetReplication.Test.Protobuf";
 
-message GameObject
+message TestObject
 {
   string name = 1;
   int32 state = 2;

@@ -9,7 +9,7 @@ namespace NetReplication.Test
         NetReplication CreateNetReplication()
         {
             var replication = new NetReplication();
-            replication.System.AddType(1, typeof(Protobuf.GameObject));
+            replication.System.AddType(1, typeof(Protobuf.TestObject));
             return replication;
         }
 
@@ -21,7 +21,7 @@ namespace NetReplication.Test
 
             var clientPeer = client.NetManager.Connect("localhost", server.NetManager.LocalPort, "key");
 
-            var id = server.System.AddDynamicReplica(new Protobuf.GameObject() { Name = "A" });
+            var id = server.System.AddDynamicReplica(new Protobuf.TestObject() { Name = "A" });
 
             bool replicaAdded = false;
             client.System.ReplicaAdded += x => replicaAdded = true;
@@ -37,7 +37,7 @@ namespace NetReplication.Test
 
             Assert.IsTrue(timeOut > 0);
             Assert.IsTrue(replicaAdded);
-            Assert.IsTrue(client.System.GetReplica<Protobuf.GameObject>(id).Name == "A");
+            Assert.IsTrue(client.System.GetReplica<Protobuf.TestObject>(id).Name == "A");
 
             server.NetManager.Stop();
             client.NetManager.Stop();

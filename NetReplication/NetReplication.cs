@@ -9,36 +9,6 @@ using System.Net.Sockets;
 
 namespace NetReplication
 {
-    public class NetReplicationPeer : IDisposable
-    {
-        public NetReplication Replication { get; private set; }
-        public NetPeer NetPeer { get; private set; }
-        public IReplicationStreamWriter ReliableStreamWriter { get; private set; }
-        private MemoryStream buffer = new MemoryStream();
-
-        internal NetReplicationPeer(NetReplication replication, NetPeer peer)
-        {
-            Replication = replication;
-            NetPeer = peer;
-
-            ReliableStreamWriter = replication.System.CreateStreamWriter(new ReplicationStreamWriterOptions { AllowAlwaysUpdate = false });
-        }
-
-        internal void Update()
-        {
-            buffer.Seek(0, SeekOrigin.Begin);
-            buffer.SetLength(0);
-            ReliableStreamWriter.WriteTo(buffer);
-            NetPeer.Send(buffer.GetBuffer(), 0, (int)buffer.Length, DeliveryMethod.ReliableOrdered);
-        }
-
-        public void Dispose()
-        {
-            ReliableStreamWriter.Dispose();
-            buffer.Dispose();
-        }
-    }
-
     public class NetReplication : INetEventListener, IDisposable
     {
         public ReplicationSystem System { get; private set; }
@@ -51,20 +21,23 @@ namespace NetReplication
         public NetReplication(int port = 0)
         {
             System = new ReplicationSystem();
-            BroadcastStreamWriter = System.CreateStreamWriter(new ReplicationStreamWriterOptions { AllowAddOrRemove = false, AllowUpdatedOnly = false });
+            BroadcastStreamWriter = System.CreateStreamWriter(ReplicationStreamWriterOptions.AllowOnlyAlwaysUpdate);
             NetManager = new NetManager(this);
             NetManager.Start(port);
         }
 
         public void Update()
         {
+            // Poll events
             NetManager.PollEvents();
 
+            // Update peers
             foreach (var peer in peers)
             {
                 peer.Update();
             }
 
+            // Broadcast unreliable states
             buffer.Seek(0, SeekOrigin.Begin);
             buffer.SetLength(0);
             BroadcastStreamWriter.WriteTo(buffer);
